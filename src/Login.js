@@ -1,8 +1,11 @@
 //import logo from "./logo.svg";
 import "./LoginForm.css";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "./api";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -21,13 +24,20 @@ const Login = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setMessage(`Login successful! Token: ${data.token}`);
+        if (data.token) {
+          sessionStorage.setItem("authToken", data.token);
+          alert("Login successful!");
+          // Navigate to dashboard or call a protected API
+        }
+        // Optionally store token
+        // localStorage.setItem('token', data.token);
+        navigate("/home"); // ✅ Redirect on success
       } else {
-        const errorData = await response.text();
-        setMessage(`Login failed: ${errorData}`);
+        const error = await response.text();
+        setMessage(`Login failed: ${error}`);
       }
-    } catch (error) {
-      setMessage(`Error: ${error.message}`);
+    } catch (err) {
+      setMessage(`Error: ${err.message}`);
     }
   };
 
@@ -35,27 +45,27 @@ const Login = () => {
     <div className="login-container">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
+        <div className="input-group">
           <input
             type="text"
+            placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
-        <div>
-          <label>Password:</label>
+        <div className="input-group">
           <input
             type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-          />
+          />{" "}
         </div>
         <button type="submit">Login</button>
       </form>
-      <p>{message}</p>
+      {message && <p>{message}</p>}
     </div>
   );
 };
